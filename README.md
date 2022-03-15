@@ -9,12 +9,11 @@ Accelerometer takes samples considering various factors:
 Different scenarios results:
 
 | DelayConstant | Samples Per Second	|
-|----------------------------------------
+|---------------|------------------------
 |	UI	|	52 - 53		|
 |      GAME	|	50 - 55		|
 |     NORMAL	|	50 - 57		|
 |     FASTEST	|      210 - 216	|
-|---------------|-----------------------|
 
 When interrupted, sometimes more or less samples were taken.
 Samples per second are observable results by using a simple counter and adding 1 to it
