@@ -1,6 +1,6 @@
 package com.example.aplicacionsensores
 
-import android.app.Activity
+import com.example.BaseDeDatos
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -10,6 +10,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import entidades.Acelerometro
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
 
@@ -18,13 +21,18 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     val gravity = FloatArray(3) { i -> 0.0f }
     val accNoGravity = FloatArray(3)
     var samples = 0
+    var measured_samples = 0
 
     private lateinit var sensorManager: SensorManager
     private var mLight: Sensor? = null
     private var mAcc: Sensor? = null
 
     private var current = 0L
+    private val BATCH_SIZE = 10
+    private var batch = ArrayList<Acelerometro>(BATCH_SIZE)
 
+    // Create database.
+    // Databse contains table Accelerometer, with columns x,y,z.
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -33,6 +41,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         mLight = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
         mAcc = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
     }
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
@@ -62,8 +71,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                     updateValue("ACCGRAV", acc, ACC_VIEW_ID)
                     updateValue("ACCNOGRAV", accNoGravity, LIGHT_VIEW_ID)
+
+                    batch.add(Acelerometro(accNoGravity[0], accNoGravity[1], accNoGravity[2]))
+
+                    if(measured_samples == 10) {
+                        val acc_dao = getDatabase().acelerometroDao()
+                        acc_dao.insertAll(batch)
+                        batch = ArrayList<Acelerometro>(10)
+                        measured_samples = 0
+                    }
+
                     Toast.makeText(this, "Samples taken: " + samples, Toast.LENGTH_SHORT).show()
                     samples = 0
+                    measured_samples++
                     current = System.currentTimeMillis()
                 }
             }
@@ -87,5 +107,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
+    }
+
+    public fun getDatabase(): BaseDeDatos {
+        val db = Room.databaseBuilder(
+            applicationContext,
+            BaseDeDatos::class.java, "DatosAcelerometro"
+        ).build()
+        return db
     }
 }
