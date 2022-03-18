@@ -2,12 +2,16 @@ package com.example.aplicacionsensores
 
 import com.example.BaseDeDatos
 import android.content.Context
+import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.room.Room
@@ -31,6 +35,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private val BATCH_SIZE = 10
     private var batch = ArrayList<Acelerometro>(BATCH_SIZE)
 
+    lateinit var btnIntent : Button
+
     // Create database.
     // Databse contains table Accelerometer, with columns x,y,z.
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +44,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         setContentView(R.layout.activity_main)
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        // var btnIntent : Button = findViewById(R.id.btnPredict)
+        // btnIntent.setOnClickListener({
+        //     onClickPredict()
+        // })
 
         mLight = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
         mAcc = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -75,8 +85,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     batch.add(Acelerometro(accNoGravity[0], accNoGravity[1], accNoGravity[2]))
 
                     if(measured_samples == 10) {
-                        val acc_dao = getDatabase().acelerometroDao()
-                        acc_dao.insertAll(batch)
+                        // try {
+                        //     val acc_dao = getDatabase().acelerometroDao()
+                        //     acc_dao.insertAll(batch)
+                        // } catch(e: Exception) {
+                        //     Toast.makeText(this, "An Exception ocurred, check logs.", Toast.LENGTH_SHORT).show()
+                        //     Log.e("DAO ERROR", e.toString())
+                        // }
                         batch = ArrayList<Acelerometro>(10)
                         measured_samples = 0
                     }
@@ -107,6 +122,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
+    }
+
+    fun onClickPredict(view: View) {
+        val intent = Intent(this, Training::class.java).apply {
+            putExtra("message", "msg")
+        }
+        startActivity(intent)
     }
 
     public fun getDatabase(): BaseDeDatos {
