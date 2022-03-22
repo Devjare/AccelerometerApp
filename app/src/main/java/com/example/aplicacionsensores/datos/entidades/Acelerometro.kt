@@ -1,4 +1,4 @@
-package entidades
+package com.example.aplicacionsensores.datos.entidades
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
